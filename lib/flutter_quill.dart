@@ -10,6 +10,7 @@ export 'src/models/rules/delete.dart';
 export 'src/models/rules/format.dart';
 export 'src/models/rules/insert.dart';
 export 'src/models/rules/rule.dart';
+export 'src/models/themes/quill_custom_icon.dart';
 export 'src/models/themes/quill_dialog_theme.dart';
 export 'src/models/themes/quill_icon_theme.dart';
 export 'src/widgets/controller.dart';
