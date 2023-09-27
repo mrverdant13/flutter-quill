@@ -39,7 +39,9 @@ class QuillController extends ChangeNotifier {
 
   /// Document managed by this controller.
   Document _document;
+
   Document get document => _document;
+
   set document(doc) {
     _document = doc;
 
@@ -121,7 +123,9 @@ class QuillController extends ChangeNotifier {
       return;
     }
     if (isIncrease) {
-      formatSelection(Attribute.getIndentLevel(indent.value + 1));
+      if (indent.value < 5) {
+        formatSelection(Attribute.getIndentLevel(indent.value + 1));
+      }
       return;
     }
     formatSelection(Attribute.getIndentLevel(indent.value - 1));
@@ -148,7 +152,9 @@ class QuillController extends ChangeNotifier {
       } else if (indent.value == 1 && !isIncrease) {
         formatAttribute = Attribute.clone(Attribute.indentL1, null);
       } else if (isIncrease) {
-        formatAttribute = Attribute.getIndentLevel(indent.value + 1);
+        if (indent.value < 5) {
+          formatAttribute = Attribute.getIndentLevel(indent.value + 1);
+        }
       } else {
         formatAttribute = Attribute.getIndentLevel(indent.value - 1);
       }
@@ -159,11 +165,11 @@ class QuillController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Returns all styles for each node within selection
-  List<OffsetValue<Style>> getAllIndividualSelectionStyles() {
-    final styles = document.collectAllIndividualStyles(
+  /// Returns all styles and Embed for each node within selection
+  List<OffsetValue> getAllIndividualSelectionStylesAndEmbed() {
+    final stylesAndEmbed = document.collectAllIndividualStyleAndEmbed(
         selection.start, selection.end - selection.start);
-    return styles;
+    return stylesAndEmbed;
   }
 
   /// Returns plain text for each node within selection
@@ -253,14 +259,6 @@ class QuillController extends ChangeNotifier {
           ..retain(data is String ? data.length : 1, toggledStyle.toJson());
         document.compose(retainDelta, ChangeSource.LOCAL);
       }
-    }
-
-    if (_keepStyleOnNewLine) {
-      final style = getSelectionStyle();
-      final notInlineStyle = style.attributes.values.where((s) => !s.isInline);
-      toggledStyle = style.removeAll(notInlineStyle.toSet());
-    } else {
-      toggledStyle = Style();
     }
 
     if (textSelection != null) {
@@ -400,7 +398,15 @@ class QuillController extends ChangeNotifier {
     _selection = selection.copyWith(
         baseOffset: math.min(selection.baseOffset, end),
         extentOffset: math.min(selection.extentOffset, end));
-    toggledStyle = Style();
+    if (_keepStyleOnNewLine) {
+      final style = getSelectionStyle();
+      final ignoredStyles = style.attributes.values.where(
+        (s) => !s.isInline || s.key == Attribute.link.key,
+      );
+      toggledStyle = style.removeAll(ignoredStyles.toSet());
+    } else {
+      toggledStyle = Style();
+    }
     onSelectionChanged?.call(textSelection);
   }
 
