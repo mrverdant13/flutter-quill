@@ -3,9 +3,13 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  desktop_drop
   file_selector_windows
   gal
-  pasteboard
+  irondash_engine_context
+  printing
+  share_plus
+  super_native_extensions
   url_launcher_windows
 )
 
